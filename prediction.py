@@ -2,7 +2,9 @@ import torch
 from model import DNCNN
 from torchvision import datasets, transforms
 import time
-from thop import profile
+from PIL import Image
+import matplotlib.pyplot as plt
+
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print("using {} device.".format(device))
@@ -37,6 +39,21 @@ end_time = time.time()
 print('test time', end_time - start_time)
 print('Test Accuracy is ', test_acc)
 
+#Test a single image
+class_indict = ['Fire', 'Smoke']
+img = Image.open('./FIRE-SMOKE-DATASET/FIRE-SMOKE-DATASET/Test/Smoke/image_18.jpg')
+plt.imshow(img)
+img = test_transforms(img)
+img = torch.unsqueeze(img, dim=0)
+net.eval()
+with torch.no_grad():
+    # predict class
+    output = torch.squeeze(net(img.to(device))).cpu()
+    predict = torch.softmax(output, dim=0)
+    predict_cla = torch.argmax(predict).numpy()
 
+print_res = "class: {}   prob: {:.3}".format(class_indict[predict_cla],
+                                             predict[predict_cla].numpy())
 
-
+plt.title(print_res),plt.xticks([]), plt.yticks([])
+plt.show()
